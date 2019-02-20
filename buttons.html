@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <title>Camera Control</title>
+  <style>
+    input[name="pan"] {
+      display: block;
+      width:320px;
+      margin-left:50px;
+    }
+    img#camera-view {
+      width:320px;
+      height:240px;
+      position:relative;
+      left: -45px;
+    }
+    input[type=range][orient=vertical]
+    {
+        writing-mode: bt-lr; /* IE */
+        -webkit-appearance: slider-vertical; /* WebKit */
+        width: 8px;
+        height: 240px;
+        padding: 0 5px;
+    }
+    input[type=range][orient=vertical][name=focus]
+    {
+        position:relative;
+        left: 330px;
+    }
+    input[type=range][orient=vertical][name=tilt]
+    {
+        position:relative;
+        left: -45px;
+    }
+    #pan-label {
+      position: relative;
+      left: 205px;
+    }
+    #focus-label {
+      writing-mode:vertical-rl;
+      position: relative;
+      top:-100px;
+      left:380px;
+
+    }
+    #tilt-label {
+      writing-mode:vertical-lr;
+      position: relative;
+      top:-110px;
+    }
+  </style>
+</head>
+<body>
+<span id="tilt-label">Tilt</span>
+<span id="focus-label">Focus</span>
+<input id="focus" name="focus" type="range" min="{{focus_min }}" max="{{focus_max }}" step="{{focus_step }}" orient="vertical" />
+<input id="tilt" name="tilt" type="range" min="{{tilt_min }}" max="{{tilt_max }}" step="{{tilt_step }}" orient="vertical" />
+<img id="camera-view" src="{{ stream_url }}"/>
+<input id="pan" name="pan" min="{{pan_min }}" max="{{pan_max }}" step="{{pan_step }}" type="range"/>
+<div id="pan-label">Pan</div>
+</body>
+<script type="text/javascript">
+  function sendPOST(url, data, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json)
+        }
+    };
+    var data = JSON.stringify(data);
+    xhr.send(data);
+  }
+  function sendGET(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            callback(json);
+        }
+    };
+    var data = JSON.stringify(data);
+    xhr.send(data);
+  }
+  var focus = document.getElementById('focus');
+  var pan = document.getElementById('pan');
+  var tilt = document.getElementById('tilt');
+
+  focus.onchange = function() {
+    sendPOST("/controls/focus", {value:focus.value}, function(res) {
+      sendGET("/controls/focus", function(res) {
+        focus.value = res.value;
+      })
+    })
+  }​
+  pan.onchange = function() {
+    sendPOST("/controls/pan", {value:pan.value}, function(res) {
+      sendGET("/controls/pan", function(res) {
+        pan.value = res.value;
+      })
+    })
+  }​
+  tilt.onchange = function() {
+    sendPOST("/controls/tilt", {value:tilt.value}, function(res) {
+      sendGET("/controls/tilt", function(res) {
+        tilt.value = res.value;
+      })
+    })
+  }​
+
+
+
+
+</script>
+</html>
